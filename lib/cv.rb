@@ -11,8 +11,7 @@ ActiveRecord::Base.establish_connection(
   database: 'data_warehouse_remote'
 )
 
-# Task.where(task_type: 'review').each_with_index do |task, index|
-Task.where(id: 'CV-00000121').each_with_index do |task, index|
+Task.where(task_type: 'review').each_with_index do |task, index|
   print '.' if index % 10 == 0
   next if task.critiques.count == 0 || !task.id.include?('CV-')
   task_hash = { 'critiques' => [] }
