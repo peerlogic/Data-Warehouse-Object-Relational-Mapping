@@ -14,7 +14,8 @@ ActiveRecord::Base.establish_connection(
 Task.where(task_type: 'review').each_with_index do |task, index|
   print '.' if index % 10 == 0
   next if task.critiques.count == 0 || !task.id.include?('EZ-')
-  task_hash = { 'critiques' => [] }
+  sum_score_in_whole_task = 0
+  task_hash = { 'critiques' => [], 'sum_score_in_whole_task' => sum_score_in_whole_task }
   # task -> critique
   uniq_accessor_actor_ids = task.critiques.map(&:assessor_actor_id).uniq
   next if uniq_accessor_actor_ids.nil?
@@ -35,12 +36,15 @@ Task.where(task_type: 'review').each_with_index do |task, index|
       # convert assessees from teams to participants
       reviewer_actor_id = ActorParticipant.where(actor_id: assessor_actor_id).first.participant.id
       ActorParticipant.where(actor_id: assessee_actor_id).each do |ap|
+        aggregrate_score_from_each_critique = total_score * 100.0 / (max_total_score.zero? ? 1 : max_total_score)
         task_hash['critiques'] << { 'reviewer_actor_id' => reviewer_actor_id,
                                     'reviewee_actor_id' => ap.participant.id,
-                                    'score'             => total_score * 100.0 / (max_total_score.zero? ? 1 : max_total_score) }
+                                    'score'             => aggregrate_score_from_each_critique }
+        sum_score_in_whole_task += aggregrate_score_from_each_critique
       end
     end
   end
+  task_hash['sum_score_in_whole_task'] = sum_score_in_whole_task
   File.open("../EZ-output/#{task.id}.json", 'w') do |f|
     f.write(JSON.pretty_generate(task_hash))
   end
