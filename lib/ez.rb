@@ -15,7 +15,10 @@ Task.where(task_type: 'review').each_with_index do |task, index|
   print '.' if index % 10 == 0
   next if task.critiques.count == 0 || !task.id.include?('EZ-')
   sum_score_in_whole_task = 0
-  task_hash = { 'critiques' => [], 'sum_score_in_whole_task' => sum_score_in_whole_task }
+  score_array = []
+  task_hash = { 'critiques' => [], 
+                'sum_score_in_whole_task' => sum_score_in_whole_task,
+                '80 quantile score' => 0 }
   # task -> critique
   uniq_accessor_actor_ids = task.critiques.map(&:assessor_actor_id).uniq
   next if uniq_accessor_actor_ids.nil?
@@ -41,9 +44,12 @@ Task.where(task_type: 'review').each_with_index do |task, index|
                                     'reviewee_actor_id' => ap.participant.id,
                                     'score'             => aggregrate_score_from_each_critique }
         sum_score_in_whole_task += aggregrate_score_from_each_critique
+        score_array << aggregrate_score_from_each_critique
       end
     end
   end
+  score_array.sort!
+  task_hash['80 quantile score'] = score_array[(score_array.length * 0.8 - 1).round]
   task_hash['sum_score_in_whole_task'] = sum_score_in_whole_task
   File.open("../EZ-output/#{task.id}.json", 'w') do |f|
     f.write(JSON.pretty_generate(task_hash))
