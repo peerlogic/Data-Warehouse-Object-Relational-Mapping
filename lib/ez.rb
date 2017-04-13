@@ -39,7 +39,7 @@ Task.where(task_type: 'review').each_with_index do |task, index|
       # convert assessees from teams to participants
       reviewer_actor_id = ActorParticipant.where(actor_id: assessor_actor_id).first.participant.id
       ActorParticipant.where(actor_id: assessee_actor_id).each do |ap|
-        aggregrate_score_from_each_critique = total_score * 100.0 / (max_total_score.zero? ? 1 : max_total_score)
+        aggregrate_score_from_each_critique = (total_score * 100.0 / (max_total_score.zero? ? 1 : max_total_score)).round(2)
         task_hash['critiques'] << { 'reviewer_actor_id' => reviewer_actor_id,
                                     'reviewee_actor_id' => ap.participant.id,
                                     'score'             => aggregrate_score_from_each_critique }
@@ -50,7 +50,7 @@ Task.where(task_type: 'review').each_with_index do |task, index|
   end
   score_array.sort!
   task_hash['80 quantile score'] = score_array[(score_array.length * 0.8 - 1).round]
-  task_hash['sum_score_in_whole_task'] = sum_score_in_whole_task
+  task_hash['sum_score_in_whole_task'] = sum_score_in_whole_task.round(2)
   File.open("../EZ-output/#{task.id}.json", 'w') do |f|
     f.write(JSON.pretty_generate(task_hash))
   end
