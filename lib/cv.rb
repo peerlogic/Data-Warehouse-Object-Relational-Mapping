@@ -15,7 +15,6 @@ Task.where(task_type: 'review').each_with_index do |task, index|
   print '.' if index % 10 == 0
   next if task.critiques.count == 0 || !task.id.include?('CV-')
   sum_score_in_whole_task = 0
-  score_array = []
   task_hash = { 'critiques' => [], 
                 'sum_score_in_whole_task' => sum_score_in_whole_task,
                 '80 quantile score' => 0 }
@@ -38,14 +37,11 @@ Task.where(task_type: 'review').each_with_index do |task, index|
                                       'reviewee_actor_id' => ap.participant.id,
                                       'score'             => (6 - critique.rank) * 1.0 }
           sum_score_in_whole_task += (6 - critique.rank)
-          score_array << (6 - critique.rank)
         end
       end
     end
   end
-  score_array.sort!
-  index = (score_array.length * 0.8 - 1).round
-  task_hash['80 quantile score'] = (score_array[index > 0 ? index : 0] ||= 0).round(2)
+  task_hash['80 quantile score'] = 4.0
   task_hash['sum_score_in_whole_task'] = sum_score_in_whole_task.round(2)
   File.open("../CV-output/#{task.id}.json", 'w') do |f|
     f.write(JSON.pretty_generate(task_hash))
