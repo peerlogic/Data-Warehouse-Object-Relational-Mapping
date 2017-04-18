@@ -23,7 +23,6 @@ Task.where(task_type: 'review').each_with_index do |task, index|
   uniq_accessor_actor_ids = task.critiques.map(&:assessor_actor_id).uniq
   next if uniq_accessor_actor_ids.nil?
   uniq_accessor_actor_ids.each do |assessor_actor_id|
-    # TODO: multiple artifact_ids (task.critiques)
     critiques_per_assessor = task.critiques.select { |c| c.assessor_actor_id == assessor_actor_id }
     next if critiques_per_assessor.nil?
     uniq_accessee_actor_ids = critiques_per_assessor.map(&:assessee_actor_id).uniq
